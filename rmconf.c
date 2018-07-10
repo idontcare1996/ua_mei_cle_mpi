@@ -27,8 +27,8 @@ float GetFloat(bool positive);
 long GetUpdateFrequency();
 void AddCuboid(char ***nodes, float width, float depth, float height, float node_spacing);
 void AddSphere(char ***nodes, float width, float depth, float height, float node_spacing, int X, int Y, int Z);
-
-
+void AddElement(char ***nodes, float width, float depth, float height, float node_spacing,char *element);
+void SaveRoom(char ***nodes, int X, int Y, int Z, long update_frequency);
 int main ()
 {
     // VARIABLES TO USE
@@ -78,9 +78,9 @@ int main ()
     // CALCULATE ARRAY DIMENSIONS
 
     printf("\n\n Calculation array dimensions (in number of nodes)...");
-    X = (int) floor(width / node_spacing);
-    Y = (int) floor(depth / node_spacing);
-    Z = (int) floor(height / node_spacing);
+    X = (int) ceil(width / node_spacing);
+    Y = (int) ceil(depth / node_spacing);
+    Z = (int) ceil(height / node_spacing);
     printf("\n Array: X=%i Y=%i Z=%i", X,Y,Z);
 
     // CALCULATE ROOM SIZE AFTER ARRAY DIMENSIONS
@@ -96,11 +96,14 @@ int main ()
     }
     // INITIALIZE THE ARRAY
 
+    printf( "\n\n Initializing the array... \n\n");
+
+    nodes[X][Y][Z];
     nodes = (char***) malloc(X * sizeof(char**));
     for (int x = 0; x <= X; x++)
     {
         nodes[x] = (char**) malloc(Y * sizeof (char*));
-        for (int y = 0; y <= Y; y++)
+        for (int y = 0; y <= Y ; y++)
         {
             nodes[x][y] = (char*) malloc(Z * sizeof(char));
             for (int z = 0; z <= Z; z++)
@@ -125,28 +128,32 @@ int main ()
         scanf("%d", &main_menu_option);
         switch (main_menu_option) {
         case 1:
-            printf("Sphere\n");
+            printf("\n SPHERE \n");
             AddSphere(nodes, width, depth, height, node_spacing,X,Y,Z);
             break;
         case 2:
-            printf("Cuboid\n");
+            printf("\n CUBOID \n");
             AddCuboid(nodes, width, depth, height, node_spacing);
             break;
         case 3:
-            printf("Source\n");
-            //AddSource(nodes, width, depth, height, node_spacing);
+            printf("\n SOURCE \n");
+            AddElement(nodes, width, depth, height, node_spacing,"source");
             sources++;
             break;
         case 4:
-            printf("Receiver\n");
-            //AddReceiver(nodes, width, depth, height, node_spacing);
+            printf("\n RECEIVER \n");
+            AddElement(nodes, width, depth, height, node_spacing,"receiver");
             receivers++;
             break;
         case 5:
-            printf("Save\n");
-            if (sources < 1 || receivers < 1)
-            printf("It must be specified at least one source and one receiver\n");
-            //SaveRoom(nodes, width, depth, height, update_frequency);
+            printf("\n SAVE \n");
+            if (sources >=1 && receivers >= 1)
+            {   
+                printf(" Saving... Please wait");
+                SaveRoom(nodes, X, Y, Z, update_frequency);
+            }
+            else
+            printf("It must be specified at least one source and one receiver\n"); 
             break;
         case 0:
             printf("Finishing program.\n");
@@ -355,9 +362,9 @@ void AddCuboid(char ***nodes, float width, float depth, float height, float node
     
     // GET THE NUMBER OF NODES TO CHANGE IN EACH AXIS
 
-    int i_min = (int) floor( x_min / node_spacing); int i_max = (int) floor( x_max / node_spacing);
-    int j_min = (int) floor( y_min / node_spacing); int j_max = (int) floor( y_max / node_spacing);
-    int k_min = (int) floor( z_min / node_spacing); int k_max = (int) floor( z_max / node_spacing);
+    int i_min = (int) ceil( x_min / node_spacing); int i_max = (int) ceil( x_max / node_spacing);
+    int j_min = (int) ceil( y_min / node_spacing); int j_max = (int) ceil( y_max / node_spacing);
+    int k_min = (int) ceil( z_min / node_spacing); int k_max = (int) ceil( z_max / node_spacing);
     printf(" \n\n %i,%i %i,%i %i,%i \n\n",i_min,i_max,j_min,j_max,k_min,k_max);
 
 
@@ -453,12 +460,12 @@ void AddSphere(char ***nodes, float width, float depth, float height, float node
 
 
     // GET THE CENTER NODE
-    sphere_node_x = (int) floor( sphere_x / node_spacing );
-    sphere_node_y = (int) floor( sphere_y / node_spacing );
-    sphere_node_z = (int) floor( sphere_z / node_spacing );
+    sphere_node_x = (int) ceil( sphere_x / node_spacing );
+    sphere_node_y = (int) ceil( sphere_y / node_spacing );
+    sphere_node_z = (int) ceil( sphere_z / node_spacing );
 
     // GET NUMBER OF NODES THAT MAKE THE RADIUS
-    int radius_node = ((int) floor( (sphere_x+radius) / node_spacing)) - sphere_node_x;
+    int radius_node = ((int) ceil( (sphere_x+radius) / node_spacing)) - sphere_node_x;
 
     // DRAW A BOX AROUND THE SPHERE, TO AVOID SCANNING THE ENTIRE ROOM FOR NODES INSIDE SPHERE
 
@@ -466,7 +473,7 @@ void AddSphere(char ***nodes, float width, float depth, float height, float node
     cube_y_p = sphere_node_y + radius_node ;    cube_y_n = sphere_node_y - radius_node ;
     cube_z_p = sphere_node_z + radius_node ;    cube_z_n = sphere_node_z - radius_node ;
 
-    max_width = (int) floor( width / node_spacing );
+    max_width = (int) ceil( width / node_spacing );
 
     // CHECK WHICH NODES ARE INSIDE BOTH THE SPHERE AND THE ROOM AND ASSIGN THE COE
 
@@ -480,7 +487,7 @@ void AddSphere(char ***nodes, float width, float depth, float height, float node
                     (pow((b-sphere_node_y),2)) +
                     (pow((c-sphere_node_z),2)) <= pow(radius_node,2))
                     { 
-                        if(a>=0 && a<=X && b>=0 && b<=Y && c>=0 && c<=Z)
+                        if(a>=0 && a<X && b>=0 && b<Y && c>=0 && c<Z)
                         {
                             nodes[a][b][c] = abs_coefficient;
                         }
@@ -489,4 +496,78 @@ void AddSphere(char ***nodes, float width, float depth, float height, float node
         }
     }
     printf("\n Added sphere...");
+}
+void AddElement(char ***nodes, float width, float depth, float height, float node_spacing,char *element) {
+
+    float x,y,z;
+    int i,j,k;
+
+    printf("\n\n Please enter location of the element: \n\n");
+
+    printf("\n X value: ");
+    do
+    {   
+        x = GetFloat(false);
+        if( x > width)
+            printf(" ERROR: Point distance can't be bigger than the width of the room (%f)", width);
+    }
+    while (x > width);
+
+    printf("\n Y value: ");
+    do
+    {
+        y = GetFloat(false);
+        if( y > depth)
+            printf(" ERROR: Point distance can't be bigger than the depth of the room (%f)", depth);
+    }
+    while (y > depth);
+
+    printf("\n Z value: ");
+    do
+    {
+        z = GetFloat(false);
+        if( z > height)
+            printf(" ERROR: Point distance can't be bigger than the height of the room (%f)", height);
+    }
+    while (z > height);
+
+    i = (int) ceil( x / node_spacing );
+    
+    j = (int) ceil( y / node_spacing );
+    
+    k = (int) ceil( z / node_spacing );
+    
+
+
+    if (element == "source")
+    {
+        nodes[i][j][k] = 'S';
+        printf("\n New Source Added at (%d, %d, %d)\n", i, j, k);
+    }
+    else if (element == "receiver")
+    {
+        nodes[i][j][k] = 'R';
+        printf("\n New Receiver Added at (%d, %d, %d)\n", i, j, k);
+    }
+}
+void SaveRoom(char ***nodes, int X, int Y, int Z, long update_frequency) {
+    FILE *file = fopen("room-config.dwm", "w");
+    double number = 0;
+    printf(" Saving %d Bytes to \"room-config.dwm\" ", (X*Y*Z));
+    
+    fprintf(file, "%d %d %d %ld\n", X, Y, Z, update_frequency);
+    for (int i = 0; i < X; i++)
+    {
+        for (int j = 0; j < Y; j++)
+        {
+            for (int k = 0; k < Z; k++)
+            {
+                fprintf(file, "%c", nodes[i][j][k]);
+                number++;
+            }
+        }
+    }
+    fclose(file);
+    printf(" \n\n Number of nodes: %lf\n", number);
+    printf("File Saved\n");
 }
