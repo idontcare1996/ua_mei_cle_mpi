@@ -2,6 +2,8 @@
 
 Large Scale Computation Assignment using MPI to acoustically model a room.
 
+## Room Configurator
+
 Compile with:  ```mpicc -o rmconf rmconf.c -lm -g -O2```.
 
 Run with ```./rmconf```.
